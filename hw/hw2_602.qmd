@@ -1,0 +1,102 @@
+---
+title: "602_hw2"
+author: "William Tirone"
+format: pdf
+editor: visual
+---
+
+```{r}
+library(sets)
+```
+
+# 3.1
+
+a\)
+
+$$
+P(Y_1=y_1, \dots, Y_{100} = y_{100} | \theta) =\text{by independence} = \prod_{i=1}^{n} P(Y_i | \theta) = \prod_{i=1}^{n}\theta^{y_i}(1-\theta)^{1-y_i} = \theta^{\Sigma_{i=1}^{n} 
+ y_i}(1-\theta)^{100-\Sigma_{i=1}^{n}y_i} ; y=0,1
+$$
+
+need the "form" of this? how it's distributed?
+
+Why does this become sum of Y's? Is P(Y_1...) = P(Sum Y)?
+
+b\)
+
+```{r}
+thetas = seq(0.0,1.0,by=0.1)
+results = (thetas**57) * (1-thetas)**(100-57)
+
+plot(thetas,results)
+```
+
+c\)
+
+$$
+p(\theta | \Sigma_{i=1}^{n}y_i = 57) = \frac{P(\Sigma_{i=1}^{n}y_i = 57 | \theta)P(\theta)}{P(\Sigma_{i=1}^{n}y_i = 57)}  \\
+\text{each } P(\Theta = \theta) = \frac{1}{11}\\
+\\
+P(\Sigma Y_i = 57) = \int_{0}^{1} \theta^{57}(1-\theta)^{43}d\theta = \frac{\Gamma(56)\Gamma(44)}{\Gamma(100)}
+$$
+
+The posterior distribution and marginal distribution of Y are just scaling constants since the denominator does not depend on theta and we have equal belief for each of $P(\theta)$.
+
+```{r}
+marginal_y = (gamma(56)*gamma(44))/gamma(100)
+posterior = (results * (1/11))/marginal_y
+plot(theta,posterior)
+```
+
+d\)
+
+Not sure here on letting theta be any value in the interval. Approximating that with discrete values below but not sure if that's correct?
+
+```{r}
+thetas = seq(0,1,by=0.001) #U(0,1)
+results = (thetas**57) * (1-thetas)**(100-57)
+plot(thetas,results,type="l")
+```
+
+e\)
+
+Same thing as d), unsure on the thetas.
+
+```{r}
+plot(thetas,dbeta(thetas,58,44),type='l')
+```
+
+# 3.2
+
+loop works but I think this is just different PRIORS, now need to find the posteriors.
+
+```{r}
+
+theta0 = seq(0.1,1.0,by=0.1)
+n0 = c(1,2,8,16,32)
+
+data=c()
+
+for (i in theta0) {
+for (j in n0) {
+  
+    a = i * j
+    b = (1-i)*j
+    p = pbeta(.5,a,b,lower.tail=FALSE)
+    data = append(data,p)
+    
+}
+}
+```
+
+```{r}
+```
+
+```{r}
+
+
+
+plot(cars$speed, cars$dist, type = "l")
+
+lines(cars$speed, cars$dist/4 , col = "green")
+```
