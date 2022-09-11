@@ -10,21 +10,16 @@ editor: visual
 a\)
 
 $$
-\begin{align}
 P(Y_1=y_1, \dots, Y_{100} = y_{100} | \theta) =\text{by independence} = \prod_{i=1}^{n} P(Y_i | \theta) = \prod_{i=1}^{n}\theta^{y_i}(1-\theta)^{1-y_i} =\\
 \theta^{\Sigma_{i=1}^{n} {y_i}}( 1-\theta)^{100-\Sigma_{i=1}^{n}y_i} ;  y=0,1\\
-\\
-\end{align} 
 $$
 
 Finding the distribution of $P(\sum_{i=1}^{n}Y_i = y | \theta)$
 
 $$
-\begin{align}
 M_{\sum Y_i = y | \theta}(t) = \text{by independence} = \prod_{i=i}^{n}M_{Y_i|\theta}(t) = \\
 \prod_{i=i}^{n}(1-p+pe^t) = (1-p+pe^t)^n = {n \choose x}\theta^x(1-\theta)^{n-x} = \\
 {100 \choose 57}\theta^{57}(1-\theta)^{43}; \theta \in [0,1] \text{assuming a uniform prior?}
-\end{align}
 $$
 
 b\)
@@ -200,7 +195,23 @@ abline(v=qbeta(.025,a,b),col='green') #upper bound
 
 c\)
 
+This may represent that you have about 25% confidence that there are going to be 8 cases of recidivism and 2 cases of not, while the beta(2,8) represents you're 75% confident that there will be 2 cases of recidivism and 8 cases of failure respectively. This is if you've only seen 10 prior cases.
+
+Or maybe there were two previous studies with 2 successes and 8 failures or 2 failures and 8 successes respectively.
+
 ```{r}
 prior = 0.75 * dbeta(thetas,2,8) + 0.25 * dbeta(thetas,8,2)
 plot(thetas,prior,type="l")
 ```
+
+d\) i)
+$$
+\begin{align}
+p(\theta) * p(y|\theta) \\
+= \frac{1}{4} \frac{\Gamma(10)}{\Gamma(2) \Gamma(8)} {43 \choose 15}[3 \theta^{16}(1-\theta^{35}) + \theta^{22}(1-\theta)^{25}]
+\end{align}
+$$
+
+ii\) This is a mixture of $beta(17,36)$ and $beta(23,26)$
+
+iii\) plot:
