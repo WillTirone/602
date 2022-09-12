@@ -1,0 +1,147 @@
+---
+title: 'STA 602 Lab'
+author: "Student"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  pdf_document: default
+---
+
+```{r setup, message=F, warning=F, echo=F}
+require(tidyverse)
+require(rstanarm)
+require(magrittr)
+require(rstan)
+require(plyr)
+ggplot2::theme_set(ggplot2::theme_bw())
+knitr::opts_chunk$set(fig.align = 'center')
+```
+
+
+***
+
+## Exercise 1
+
+The histogram below is unimodal and approximately normal with mean around .155.  
+
+```{r, cache=TRUE}
+tumors <- read.csv(file = url("http://www.stat.columbia.edu/~gelman/book/data/rats.asc"),
+                     skip = 2, header = T, sep = " ")[,c(1,2)]
+y <- tumors$y
+N <- tumors$N
+n <- length(y)
+
+
+plot(seq(0, 1, length.out = 1000), 
+     dbeta(seq(0, 1, length.out = 1000), 1, 1),
+     type = 'l', 
+     xlab = expression(theta), ylab = "Density",
+     main = "The Beta(1, 1) density")
+
+stan_dat <- list(n = n, N = N, y =y, a = 1, b = 1)
+fit_pool <- stan('lab-02-pool.stan', data = stan_dat, chains = 2, refresh = 0)
+pool_output <- rstan::extract(fit_pool)
+mean(pool_output$theta)
+
+hist(pool_output$theta)
+
+```
+
+
+## Exercise 2
+
+each point on the x axis is a column, representing the different labs, and each point plotted represents different samples of the $\theta_i$
+
+```{r,cache=TRUE}
+stan_dat <- list(n = n, N = N, y =y, a = 1, b = 1)
+fit_nopool <- stan('lab-02-nopool.stan', data = stan_dat, chains = 2, refresh = 0)
+nopool_output <- rstan::extract(fit_nopool)
+apply(nopool_output$theta,2,mean)
+boxplot(nopool_output$theta)
+```
+
+## Exercise 3
+
+I think the difference is that the pool file uses one random variable for all thetas, given by the "real" keyword i.e. all of the different labs are in the same pool. 
+The nopool file uses different thetas, represented by a vector of thetas, for each lab. 
+
+## Exercise 4
+
+Each $a$ represents our prior belief about the number of tumors we believe will be found in a sample of rats and b represents the number of "failures", or rats without tumors, we observe. This could be informed based on past studies, or if we have no idea, could be represented with the $beta(1,1)$ prior. 
+
+```{r}
+#plotting different priors 
+par(mfrow = c(4, 4))
+par(mar=c(2,2,2,2))
+for(a_val in c(1, 10, 25, 100)){
+  for(b_val in rev(c(1, 10, 25, 100))){
+    plot(seq(0, 1, length.out = 1000), 
+     dbeta(seq(0, 1, length.out = 1000), a_val, b_val),
+     type = 'l', 
+     xlab = expression(theta), ylab = "Density",
+     main = paste0("Beta(", a_val, ", ", b_val, ")"))
+  }
+}
+
+#getting samples from each posterior given the above priors 
+output_list <- list()
+for(a_val in c(1, 10, 25, 100)){
+  for(b_val in c(1, 10, 25, 100)){
+    stan_dat <- list(n = n, N = N, y = y, a = a_val, b = b_val)
+    fit_pool <- stan('lab-02-pool.stan', data = stan_dat, chains = 2, refresh = 0)
+    output_list[[paste0("a_", a_val, ":b_", b_val)]] <- rstan::extract(fit_pool)[["theta"]]
+  }
+}
+
+#compiling above samples into a dataframe
+output_list %>%
+  plyr::ldply(function(theta){
+    reshape2::melt(theta) %>%
+      dplyr::mutate(post_mean = mean(theta))
+  }, .id = "prior") %>%
+  tidyr::separate("prior", into = c("a", "b"), sep = ":") %>%
+  dplyr::mutate(a = as.numeric(gsub("._", "", a)),
+                b = as.numeric(gsub("._", "", b))) %>%
+  ggplot2::ggplot() +
+  geom_density(aes(x = value)) +
+  geom_vline(aes(xintercept = post_mean)) +
+  facet_grid(a~factor(b, levels = rev(c(1, 10, 25, 100)))) +
+  scale_colour_brewer(palette = "Set1") +
+  labs(x = expression(theta), y = "Density")
+```
+
+## Exercise 5
+
+From the beginning of the lab, "specifically, we have the number of incidences of endometrial stromal polyps in 71 different groups of female lab rats of type F344". So each y is the actual observed number of successes, $a$, and $N-a$ would be the value for $b$, or the "failures". 
+
+## Exercise 6
+
+Below is a calculation of the MLE's, $\bar{Y}$ of the different observed tumors from the $N$ labs. It looks like our priors beliefs range from about .15 to .20 which is a pretty narrow range, while the MLEs below range from 0 to 0.375 which is a much wider range clearly. 
+
+```{r}
+mle = tumors$y / tumors$N
+max(mle)
+min(mle)
+```
+
+## Exercise 7
+
+Why might we have observed such a difference between the two approaches when using the prior Beta(1,1)? Consider calculating the MLEs for θ and θi and comparing these values to the values obtained with the Bayesian approach:
+
+If we feed the values below into our modified formula for $E[\theta|Y}$, allowing the MLE to vary widely will result in different expectations of $\theta$. This will then change the values of the Bayesian approach. 
+
+```{r}
+# approach 1
+mle.1 <- sum(y)/sum(N)
+
+# approach 2
+mle.2 <- y/N
+
+mle.1
+mle.2
+```
+
+
+
+
+***
+
