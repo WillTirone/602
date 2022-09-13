@@ -1,8 +1,7 @@
 ---
 title: "602_hw2"
 author: "William Tirone"
-format: 
-  pdf
+format: pdf
 editor: visual
 ---
 
@@ -11,25 +10,26 @@ editor: visual
 a\)
 
 $$
-P(Y_1=y_1, \dots, Y_{100} = y_{100} | \theta) \\ 
-=\text{by independence} = \\\prod_{i=1}^{n} P(Y_i | \theta) = 
-$$
-
-$$
- \prod_{i=1}^{n}\theta^{y_i}(1-\theta)^{1-y_i}\\
-\theta^{\Sigma_{i=1}^{n} {y_i}}( 1-\theta)^{100-\Sigma_{i=1}^{n}y_i} ;  y=0,1\\
+\begin{aligned}
+& P(Y_1=y_1, \dots, Y_{100} = y_{100} | \theta) =\text{by independence}\\
+& =\prod_{i=1}^{n} P(Y_i | \theta)\\
+& =\prod_{i=1}^{n}\theta^{y_i}(1-\theta)^{1-y_i}\\
+& =\theta^{\Sigma_{i=1}^{n} {y_i}}( 1-\theta)^{100-\Sigma_{i=1}^{n}y_i} ;  y=0,1\\
+\end{aligned}
 $$
 
 Finding the distribution of $P(\sum_{i=1}^{n}Y_i = y | \theta)$
 
 $$
-M_{\sum Y_i = y | \theta}(t) = \text{by independence} = \prod_{i=i}^{n}M_{Y_i|\theta}(t) = \\
-\prod_{i=i}^{n}(1-p+pe^t) = (1-p+pe^t)^n = {n \choose x}\theta^x(1-\theta)^{n-x} 
-$$
-
-$$
-= \\
-{100 \choose 57}\theta^{57}(1-\theta)^{43}; \theta \in [0,1] \text{assuming a uniform prior?}
+\begin{aligned}
+& M_{\sum Y_i = y | \theta}(t) \\
+&= \text{by independence} \\ 
+& = \prod_{i=i}^{n}M_{Y_i|\theta}(t) = \\
+& = \prod_{i=i}^{n}(1-p+pe^t) \\
+& = (1-p+pe^t)^n  \\
+& = {n \choose x}\theta^x(1-\theta)^{n-x} \\
+& = {100 \choose 57}\theta^{57}(1-\theta)^{43}; \theta \in [0,1] \text{assuming a uniform prior}
+\end{aligned}
 $$
 
 b\)

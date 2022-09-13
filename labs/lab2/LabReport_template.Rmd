@@ -17,8 +17,6 @@ knitr::opts_chunk$set(fig.align = 'center')
 ```
 
 
-***
-
 ## Exercise 1
 
 The histogram below is unimodal and approximately normal with mean around .155.  
@@ -49,7 +47,7 @@ hist(pool_output$theta)
 
 ## Exercise 2
 
-each point on the x axis is a column, representing the different labs, and each point plotted represents different samples of the $\theta_i$
+each point on the x axis is a column, representing the different labs, and each point plotted represents different samples of the theta_i 
 
 ```{r,cache=TRUE}
 stan_dat <- list(n = n, N = N, y =y, a = 1, b = 1)
@@ -66,7 +64,7 @@ The nopool file uses different thetas, represented by a vector of thetas, for ea
 
 ## Exercise 4
 
-Each $a$ represents our prior belief about the number of tumors we believe will be found in a sample of rats and b represents the number of "failures", or rats without tumors, we observe. This could be informed based on past studies, or if we have no idea, could be represented with the $beta(1,1)$ prior. 
+Each a represents our prior belief about the number of tumors we believe will be found in a sample of rats and b represents the number of "failures", or rats without tumors, we observe. This could be informed based on past studies, or if we have no idea, could be represented with the beta(1,1) prior. 
 
 ```{r}
 #plotting different priors 
@@ -111,11 +109,11 @@ output_list %>%
 
 ## Exercise 5
 
-From the beginning of the lab, "specifically, we have the number of incidences of endometrial stromal polyps in 71 different groups of female lab rats of type F344". So each y is the actual observed number of successes, $a$, and $N-a$ would be the value for $b$, or the "failures". 
+From the beginning of the lab, "specifically, we have the number of incidences of endometrial stromal polyps in 71 different groups of female lab rats of type F344". So each y is the actual observed number of successes, a, and, N-a, would be the value for b, or the "failures". 
 
 ## Exercise 6
 
-Below is a calculation of the MLE's, $\bar{Y}$ of the different observed tumors from the $N$ labs. It looks like our priors beliefs range from about .15 to .20 which is a pretty narrow range, while the MLEs below range from 0 to 0.375 which is a much wider range clearly. 
+Below is a calculation of the MLE's, Y-bar of the different observed tumors from the N labs. It looks like our priors beliefs range from about .15 to .20 which is a pretty narrow range, while the MLEs below range from 0 to 0.375 which is a much wider range clearly. 
 
 ```{r}
 mle = tumors$y / tumors$N
@@ -125,9 +123,9 @@ min(mle)
 
 ## Exercise 7
 
-Why might we have observed such a difference between the two approaches when using the prior Beta(1,1)? Consider calculating the MLEs for θ and θi and comparing these values to the values obtained with the Bayesian approach:
+Why might we have observed such a difference between the two approaches when using the prior Beta(1,1)? Consider calculating the MLEs for theta and theta_i and comparing these values to the values obtained with the Bayesian approach:
 
-If we feed the values below into our modified formula for $E[\theta|Y}$, allowing the MLE to vary widely will result in different expectations of $\theta$. This will then change the values of the Bayesian approach. 
+If we feed the values below into our modified formula for E[theta|Y}, allowing the MLE to vary widely will result in different expectations of theta. This will then change the values of the Bayesian approach. 
 
 ```{r}
 # approach 1
@@ -141,7 +139,4 @@ mle.2
 ```
 
 
-
-
-***
 
