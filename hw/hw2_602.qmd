@@ -80,6 +80,8 @@ theta0 = seq(0.1,0.9,by=0.1)
 n0 = c(1,2,8,16,32)
 
 data=c()
+a_s = c()
+b_s = c()
 
 for (i in theta0) {
 for (j in n0) {
@@ -205,9 +207,13 @@ prior = 0.75 * dbeta(thetas,2,8) + 0.25 * dbeta(thetas,8,2)
 plot(thetas,prior,type="l")
 ```
 
-d\) i) $$
-p(\theta) * p(y|\theta) \\
-= \frac{1}{4} \frac{\Gamma(10)}{\Gamma(2) \Gamma(8)} {43 \choose 15}[3 \theta^{16}(1-\theta^{35}) + \theta^{22}(1-\theta)^{25}]
+d\) i)
+
+$$
+\begin{aligned}
+& p(\theta) * p(y|\theta) \\ 
+& = \frac{1}{4} \frac{\Gamma(10)}{\Gamma(2) \Gamma(8)} {43 \choose 15}[3 \theta^{16}(1-\theta^{35}) + \theta^{22}(1-\theta)^{25}]
+\end{aligned}
 $$
 
 ii\) This is a mixture of $beta(17,36)$ and $beta(23,26)$
@@ -223,3 +229,39 @@ axis(1, at = seq(0.0,1,by=0.1))
 ```
 
 e\)
+
+# 3.7
+
+# 3.10 
+
+a\)
+
+$$
+\begin{aligned}
+&p(\theta) = beta(1,1) = UNIF(0,1)\\
+&p(\psi) = \frac{e^\psi}{1+e^\psi} \frac{1}{(1+e^\psi)^2} = \frac{e^\psi}{(1+e^\psi)^3}\\
+&\text{note: worked out the above inverse and derivative}\\
+&\text{by hand, but please let me know if that should be typed up next time}
+\end{aligned}
+$$
+
+```{r}
+psis = seq(0,5,by=.001)
+data = (exp(1)**psis) / (1+exp(1)**psis)**3
+plot(psis,data,type="l")
+```
+
+b\)
+
+$$
+\begin{aligned}
+& e^{\psi} = \theta \\ 
+&\text{after simplification and plugging in the above using formula in the book}\\
+&p(\psi) = e^{2\psi}e^{-e^\psi}; \psi>0
+\end{aligned}
+$$
+
+```{r}
+data = exp(1)**(2*psis) * exp(1)**(-exp(1)**psis)
+plot(psis,data,type='l')
+```
