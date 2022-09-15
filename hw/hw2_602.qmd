@@ -5,6 +5,10 @@ format: pdf
 editor: visual
 ---
 
+```{r}
+library(VGAM)
+```
+
 # 3.1
 
 a\)
@@ -80,8 +84,6 @@ theta0 = seq(0.1,0.9,by=0.1)
 n0 = c(1,2,8,16,32)
 
 data=c()
-a_s = c()
-b_s = c()
 
 for (i in theta0) {
 for (j in n0) {
@@ -138,8 +140,6 @@ beta_sd(17,36)
 print(c("95% CI",CI_28))
 
 #with 8,2 prior 
-print(" ")
-print("================================================")
 print("using alpha = 23, beta = 30 with beta(8,2) prior")
 beta_mean(23,30)
 beta_mode(23,30)
@@ -157,7 +157,7 @@ plot(thetas, dbeta(thetas, 2,8), type='l',main="p(theta)")
 
 #plotting p(y=15|\theta)
 #plot a binomial here 
-plot(thetas, dbinom(15,43,thetas))
+plot(thetas, dbinom(15,43,thetas),type='l')
 
 #posterior which is beta(2 + success, 8 + failure) = beta()
 a=2+15
@@ -182,7 +182,7 @@ plot(thetas, dbeta(thetas, 8,2), type='l',main="p(theta)")
 
 #plotting p(y=15|\theta)
 #plot a binomial here 
-plot(thetas, dbinom(15,43,thetas))
+plot(thetas, dbinom(15,43,thetas),type='l')
 
 #posterior which is beta(2 + success, 8 + failure) = beta()
 a=8+15
@@ -230,6 +230,14 @@ axis(1, at = seq(0.0,1,by=0.1))
 
 e\)
 
+For a given distribution f(x):
+
+$$
+f(x) = \sum_{i=1}^{n}w_i p_i(x) \\ 
+\text{where} \sum_{i=1}^{n}w_i = 1
+$$\
+This just means that each weight gets multiplied by its respective distribution, and they must sum up to 1 to ensure that the mixture is also a pdf.
+
 # 3.7
 
 a\)
@@ -260,8 +268,40 @@ i\) The key assumption is that $Y_2 = y_2|\theta$ is independent of $Y_1 = 2$. (
 ii\)
 
 $$
-\int_{0}^{1} {278 \choose y_2}\theta^{y_2}(1-\theta)^{278-y_2} \frac{1}{B(3,14)}\theta^2(1-\theta)^{13}d\theta
+\int_{0}^{1} {278 \choose y_2}\theta^{y_2}(1-\theta)^{278-y_2} \frac{1}{B(3,14)}\theta^2(1-\theta)^{13}d\theta \\ 
 $$
+
+iii\) using the kernel trick above:
+
+$$
+= \frac{{278 \choose y_2}}{B(3,14)} \frac{\Gamma(y_2+3)\Gamma(292-y_2)}{\Gamma(295)} \sim BetaBinomial(278,3,14)
+$$
+
+c\)
+
+$$
+mean = \frac{278 * 3}{17} = 49\\
+sd = \sqrt{\frac{278 * 3 * 14 * 295}{17^2 * 18}} = 25.732
+$$
+
+```{r}
+y_2 = seq(0,278,by=1)
+plot(y_2,dbetabinom.ab(y_2,278,3,14), type="l")
+```
+
+d\)
+
+$$
+P(Y_2 = y_2 | \theta = \frac{2}{15}) = {278 \choose y_2} \frac{2}{15}^{y_2} \frac{13}{15}^{278-y_2} \sim BIN(278,\frac{2}{15})\\
+mean=37.07\\
+sd = \sqrt{278 * \frac{2}{15} * \frac{13}{15}} = 5.668
+$$
+
+The means are somewhat similar, in the range of 37-50. However, the plot from part c is much heavier tailed and skewed to the right. Considering we're Bayesian, it probably makes sense to incorporate previous data into our model, like we did with the predictive distribution, to make actual predictions. The standard deviation though, in part c, is much higher so that seems to indicate that using our MLE-based model in part d is more accurate.
+
+```{r}
+plot(y_2, dbinom(y_2,278,(2/15)),type='h')
+```
 
 # 3.10
 
@@ -270,15 +310,15 @@ a\)
 $$
 \begin{aligned}
 &p(\theta) = beta(1,1) = UNIF(0,1)\\
-&p(\psi) = \frac{e^\psi}{1+e^\psi} \frac{1}{(1+e^\psi)^2} = \frac{e^\psi}{(1+e^\psi)^3}\\
+&p(\psi) = 1 \frac{1}{(e^{\psi} + e^\psi)^2} = \frac{e^\psi}{(1+e^\psi)^2}\\
 &\text{note: worked out the above inverse and derivative}\\
 &\text{by hand, but please let me know if that should be typed up next time}
 \end{aligned}
 $$
 
 ```{r}
-psis = seq(0,5,by=.001)
-data = (exp(1)**psis) / (1+exp(1)**psis)**3
+psis = seq(-20,20,by=.01)
+data = exp(1)**psis / (1+exp(1)**psis)**2
 plot(psis,data,type="l")
 ```
 
@@ -288,11 +328,12 @@ $$
 \begin{aligned}
 & e^{\psi} = \theta \\ 
 &\text{after simplification and plugging in the above using formula in the book}\\
-&p(\psi) = e^{2\psi}e^{-e^\psi}; \psi>0
+&p(\psi) = e^{\psi}e^{-e^\psi}; -\infty < \psi < \infty 
 \end{aligned}
 $$
 
 ```{r}
-data = exp(1)**(2*psis) * exp(1)**(-exp(1)**psis)
+psis = seq(-20,20,by=.01)
+data = exp(1)**(psis) * exp(1)**(-exp(1)**psis)
 plot(psis,data,type='l')
 ```
