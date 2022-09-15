@@ -232,7 +232,38 @@ e\)
 
 # 3.7
 
-# 3.10 
+a\)
+
+$$
+\begin{aligned}
+p(\theta) &= U(0,1)\\
+p(\theta|X) &\propto p(X|\theta)p(\theta)\\
+&=c(x) \theta^2(1-\theta)^{13} \\
+&\text{where c(x) is a proportionality constant}\\
+p(\theta|Y_1 =2) &\sim beta(3,14)\\
+\\
+mean=\frac{3}{17} =.176\\
+mode=\frac{2}{15} = .133\\
+sd = \sqrt{\frac{42}{(17)^2(18)}} = 0.0899
+\end{aligned}
+$$
+
+```{r}
+thetas = seq(0,1,0.01)
+plot(thetas,dbeta(thetas,3,14),type='l',main="beta(3,14)")
+```
+
+b\)
+
+i\) The key assumption is that $Y_2 = y_2|\theta$ is independent of $Y_1 = 2$. (I believe this also assumes exchangeability?)
+
+ii\)
+
+$$
+\int_{0}^{1} {278 \choose y_2}\theta^{y_2}(1-\theta)^{278-y_2} \frac{1}{B(3,14)}\theta^2(1-\theta)^{13}d\theta
+$$
+
+# 3.10
 
 a\)
 
