@@ -1,0 +1,117 @@
+---
+title: "STA 602 HW 3"
+author: "William Tirone"
+format: pdf
+editor: visual
+---
+
+# 1 (3.3)
+
+### a)
+
+$$
+\begin{aligned}
+p(\theta_A|y_1,...,y_{10}) &\propto p(\theta_A)p(y_1,...,y_{10}|\theta_A)\\
+& =c(y,a,b) \times \theta^{119}e^{-10 \space \theta} \times \theta^{117}e^{-10 \space \theta}\\
+& = c(y,a,b) \times \theta^{236}e^{-20 \space \theta} \\
+& \sim gamma(237,20)\\
+mean & = 237 / 20 = 11.85 \\ 
+var & = 237 / 400 = 0.593
+\\
+\text{from the above we can generalize to: }\\
+ p(\theta | y_1,...,y_n) & \sim gamma(a + \sum_{i=1}^{n}Y_i,b+n)\\
+p(\theta_B|y_1,...,y_{13}) & \sim gamma(12 + 113, 1 + 13) = gamma(125,14)\\
+mean&=125/14 = 8.93\\
+var&=125/196 = 0.634
+\end{aligned}
+$$
+
+```{r}
+cat('95% Interval for GAM(237,20) : ', qgamma(.025,237,30), qgamma(.975,237,30))
+```
+
+```{r}
+cat('95% Interval for GAM(125,14) : ', qgamma(.025,125,14), qgamma(.975,125,14))
+```
+
+### b) 
+
+DISCUSS PRIOR BELIEFS TO BE CLOSE TO THETA A
+
+```{r}
+# is posterior expectation just E(\theta | y)
+n0 = seq(1,50,1)
+yB = c(11, 11, 10, 9, 9, 8, 7, 10, 6, 8, 8, 9, 7)
+n = length(yB)
+sum_yB = sum(yB)
+means = c() 
+
+for (i in n0){
+  
+  # prior 
+  alpha = 12 * i
+  beta = i
+  
+  # posterior 
+  posterior_alpha = alpha + sum_yB
+  posterior_beta = beta + n 
+  
+  posterior_expectation = posterior_alpha / posterior_beta
+  means = append(means,posterior_expectation)
+  
+}
+```
+
+```{r}
+plot(n0,means,type='l',
+    ylim=c(8.5,12.5),
+    ylab='Posterior Expectations',
+    col='blue')
+abline(h=11.85,col='red')
+text(10,9.5, "posterior")
+text(20,12, "theta A")
+```
+
+### c)
+
+# 2 (3.5)
+
+### a)
+
+### b)
+
+### c)
+
+# 3 (3.8)
+
+### a)
+
+### b)
+
+### c)
+
+# 4 (4.3)
+
+### a)
+
+### b)
+
+### c)
+
+# 5
+
+### a)
+
+### b)
+
+### 
+
+$$
+\begin{aligned}
+& 
+& 
+& 
+& 
+& 
+\end{aligned}
+$$
