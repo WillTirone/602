@@ -1,0 +1,147 @@
+---
+title: 'STA 602 Lab'
+author: "Will Tirone"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  pdf_document: default
+---
+
+```{r setup, message=F, warning=F, echo=F}
+require(tidyverse)
+require(rstanarm)
+require(magrittr)
+require(rstan)
+require(plyr)
+require(bayesplot)
+require(loo)
+require(readxl)
+ggplot2::theme_set(ggplot2::theme_bw())
+knitr::opts_chunk$set(fig.align = 'center')
+```
+
+------------------------------------------------------------------------
+
+$$
+Y_1,...,Y_n | \lambda \sim  iid \space POIS(\lambda)\\
+\lambda \sim GAM(a,b)\\
+p(\lambda | Y_1,...,Y_n) \propto P(Y_1,...,Y_n | \lambda)p(\lambda)\\
+p(\lambda | Y_1,...,Y_n) \sim GAM(a + \sum Y_i, n+b) = (shape,scale)
+$$
+
+Posterior Predictive: use this to simulate new data
+
+1)  sim $\lambda_i$ following posterior distribution. \$ Y_1,\...,Y_n) \\sim GAMMA\$
+2)  simulate $\tilde{Y}_i,...,\tilde{Y_n} \sim P(Y_1,...,Y_n | \tilde{\lambda})$ (this is just a dataset)
+
+## Exercise 1
+
+```{r}
+GoT <- read_excel("GoT_Deaths.xlsx", col_names = T)
+qplot(GoT$Count, bins = 20,fill = I("#9ecae1"))
+
+y <- GoT$Count
+n <- length(y)
+```
+
+## Exercise 2
+
+The mean for our sample is about 4, which is pretty close to the simulated data. I'd guess they're slightly different just from some kind of sampling variability.
+
+```{r}
+stan_dat <- list(y = y, N = n)
+fit <- stan("lab-03-poisson-simple.stan", data = stan_dat, refresh = 0, chains = 2)
+lambda_draws <- as.matrix(fit, pars = "lambda")
+
+mcmc_areas(lambda_draws, prob = 0.90)
+print(fit, pars = "lambda")
+```
+
+## Exercise 3
+
+```{r}
+yrep_matrix = matrix(NA,nrow=nrow(lambda_draws),ncol=length(y))
+for (i in 1:2000){
+  yrep_matrix[i,] = rpois(length(y),lambda_draws[i,])
+}
+
+ppc_hist(y, yrep_matrix[1:8, ], binwidth = 1)
+```
+
+## Exercise 4
+
+Based on the PPC plots below, it looks like our model doesn't fit very well. We're not capturing the same proportion of 0s that we see in the sample. The variance of our sample is also much higher (if I'm reading that plot correctly).
+
+```{r}
+ppc_dens_overlay(y, yrep_matrix[1:60, ])
+```
+
+```{r}
+prop_zero <- function(x){
+  mean(x == 0)
+} 
+prop_zero(y)
+
+ppc_stat(y, yrep_matrix, stat = "prop_zero")
+```
+
+```{r}
+ppc_stat_2d(y, yrep_matrix, stat = c("mean", "var"))
+```
+
+```{r}
+ppc_error_hist(y, yrep_matrix[1:4, ], binwidth = 1) + xlim(-15, 15)
+```
+
+## Exercise 5
+
+```{r}
+fit2 <- stan("lab-03-poisson-hurdle.stan", data = stan_dat, refresh = 0, chains = 2)
+# Extract the sampled values for lambda, and store them in a variable called lambda_draws2:
+lambda_draws2 <- as.matrix(fit2, pars = "lambda")
+
+# Compare
+lambdas <- cbind(lambda_fit1 = lambda_draws[, 1],
+                 lambda_fit2 = lambda_draws2[, 1])
+
+# Shade 90% interval
+mcmc_areas(lambdas, prob = 0.9) 
+```
+
+## Exercise 6
+
+From the plots, it looks like the second model performs much better and has a mean closer to the sample data.
+
+```{r}
+y_rep2 <- as.matrix(fit2, pars = "y_rep")
+
+ppc_dens_overlay(y, y_rep2[1:60, ])
+ppc_stat(y, y_rep2, stat = "prop_zero")
+ppc_stat_2d(y, y_rep2, stat = c("mean", "var"))
+ppc_error_hist(y, y_rep2[1:4, ], binwidth = 1) + xlim(-15, 15)
+```
+
+## Exercise 7
+
+It looks like the second model has a lower SE so I'm going to guess that model performs a little better.
+
+```{r}
+log_lik1 <- extract_log_lik(fit, merge_chains = FALSE)
+r_eff1 <- relative_eff(exp(log_lik1)) 
+(loo1 <- loo(log_lik1, r_eff = r_eff1))
+
+log_lik2 <- extract_log_lik(fit2, merge_chains = FALSE)
+r_eff2 <- relative_eff(exp(log_lik2)) 
+(loo2 <- loo(log_lik2, r_eff = r_eff2))
+```
+
+## Exercise 8
+
+The importance of PPCs is to make sure our model is predicting accurately.
+
+## Exercise 9
+
+The second model certainly looks like a better fit than the first. The proportions of zeros are closer to the sample, although the variance isn't quite as high as the sample. This is based on viewing the plots and the LOOCV (though I'm having a difficult time interpreting the LOOCV output, despite checking ?loo and the vignettes for it.)
+
+## Exercise 10
+
+I don't think a single LOOCV would make sense - you would want at least two so you could compare the errors with each other. They make sense relative to each other.

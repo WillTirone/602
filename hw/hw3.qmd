@@ -34,7 +34,7 @@ cat('95% Interval for GAM(237,20) : ', qgamma(.025,237,30), qgamma(.975,237,30))
 cat('95% Interval for GAM(125,14) : ', qgamma(.025,125,14), qgamma(.975,125,14))
 ```
 
-### b) 
+### b)
 
 DISCUSS PRIOR BELIEFS TO BE CLOSE TO THETA A
 
@@ -74,17 +74,25 @@ text(20,12, "theta A")
 
 ### c)
 
+*"Tumor count rates for type B mice are unknown, but type B mice are related to type A mice."* This seems to indicate that it does not make sense to have $p(\theta_A,\theta_B) = p(\theta_B) \times p(\theta_A)$ since that implies independence. So it seems like studies of the mice in group A could influence our priors for group B.
+
 # 2 (3.5)
 
 ### a)
 
 ### b)
 
-### c)
-
 # 3 (3.8)
 
 ### a)
+
+Below, UNIF(0,1) doesn't seem right but how do we know what parameters of beta to use? below just tried to make mean peak over .33 / .5 / .66
+
+```{r}
+thetas = seq(0,1,0.01)
+values = (.4 * dbeta(thetas,10,20)) +  (.2 * dbeta(thetas,3,3)) + (.4 * dbeta(thetas,20,10))
+plot(thetas,values,type='l',col='blue')
+```
 
 ### b)
 
