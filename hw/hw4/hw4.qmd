@@ -1,7 +1,7 @@
 ---
 title: "STA 602 HW 4"
 author: "William Tirone"
-format: html
+format: pdf
 editor: visual
 ---
 
@@ -39,19 +39,43 @@ p(\theta) & = p(\phi) * |\frac{d\phi}{d \theta}| \\
 \end{aligned}
 $$
 
+Now attempting to plot these priors:
+
 ```{r}
 
-n0 = 5
-t0 = -5
 
-thetas = seq(0,100,1)
+y = seq(0,100,1)
 
-a = 1
-y=.4
-values = (2/gamma(a*n0 + 1)) * thetas^(2*(a*n0 + 1)) * y^(2*(a*n0+1)) * exp(1)^(thetas^2 * sqrt(-n0*t0))
+n0 = 0.1
+t0 = -0.1
+a = 5
+theta= sqrt(-n0 * t0)
 
-plot(thetas,values,type='l')
+
+values = (2/gamma(a*n0 + 1)) * theta ^(2*a) * y^(2*a*n0+1) * exp(1)^(-theta^2 * y^2)
+plot(y,values,type='l')
+
+n0 = 0.1
+t0 = -0.1
+a = 5.2
+theta= sqrt(-n0 * t0)
+
+values2 = (2/gamma(a*n0 + 1)) * theta ^(2*a) * y^(2*a*n0+1) * exp(1)^(-theta^2 * y^2)
+
+lines(y,values2,type='l',col='blue')
 ```
+
+b\)
+
+![](IMG_0013.PNG) ![](IMG_0014.PNG)
+
+c)  and d)
+
+![](IMG_0015.PNG)
+
+e)  
+
+![](IMG_0016.PNG)
 
 # 2
 
@@ -81,7 +105,9 @@ $$
 
 b\)
 
-ADD INTERPRETATION
+The MSE for the Bayes estimator under squared error loss, the posterior mean, is lower than the MSE for the MLE from about theta = 6 to theta = 16, so this is "outperforming" the MLE in that narrow range of thetas.
+
+I believe this is the case where the bias does not make as much of a difference, so we're doing a little better by accepting some bias for a lower variance. However, as theta grows, the tradeoff is no longer worth it, and the MSE is lower for the MLE because of its unbiasedness.
 
 ```{r}
 thetas = seq(0,20,1)

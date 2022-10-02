@@ -1,0 +1,73 @@
+---
+title: "STA 602 HW5"
+author: "William Tirone"
+format: pdf
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+```
+
+# 4.1
+
+Using beta - uniform conjugacy, we know the posterior will also be a beta distribution. So we have:
+
+$$
+p(\theta_2 | Y=30) \sim beta(30+1,20+1)\\
+p(\theta_1 | Y=57) \sim beta(57+1,43+1)\\
+$$
+
+$$
+P(\theta_1 < \theta_2 | data) = \frac{1}{S}\sum_{i=1}^{S}\bf{1} (\theta_1^{(S)} < \theta_2^{(S)})
+$$
+
+```{r}
+theta1.sample = rbeta(5000,58,44)
+theta2.sample = rbeta(5000,31,21)
+
+mean(theta1.sample < theta2.sample)
+```
+
+# 4.2
+
+## a)
+
+The posteriors in 3.3 part a were given by:
+
+$$
+\theta_A | y_A \sim Gamma(237,20)\\
+\theta_B|y_B \sim Gamma(125,14)
+$$
+
+Using the same methodology above with the indicator function:
+
+```{r}
+thetaA.sample = rgamma(5000,237,20)
+thetaB.sample = rgamma(5000,125,14)
+
+mean(thetaB.sample < thetaA.sample)
+```
+
+## b)
+
+Our posterior for $\theta_B|y_B$ is $Gamma(\sum y + \alpha, \beta + n)$ so iterating through we will have $Gamma(117 + \alpha, \beta + 10)$. Observing the graph, it doesn't look like the event $\{\theta_A<\theta_B \}$ is incredibly sensitive, since it drops off fairly linearly over the iterations of n0. I would consider it sensitive if the probability dropped sharply at any n0, but it doesn't.
+
+```{r}
+
+# original data from 3.3
+yB = c(11, 11, 10, 9, 9, 8, 7, 10, 6, 8, 8, 9, 7)
+s = sum(yB)
+n = length(yB)
+
+# calculating the updates 
+n0 = seq(1,75,1)
+prob = c()
+
+for (i in n0){
+  thetaB.sample = rgamma(5000, s+(12*i),i+n)
+  prob = c(prob,mean(thetaB.sample < thetaA.sample))
+}
+
+plot(n0,prob,col='#42c5f5',pch=17)
+```
