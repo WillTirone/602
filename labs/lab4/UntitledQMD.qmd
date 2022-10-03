@@ -1,0 +1,268 @@
+---
+title: "STA 602 LAB 4"
+author: "William Tirone"
+format: pdf
+editor: visual
+---
+
+```{r}
+require(rstan)
+require(tidyverse)
+require(rstanarm)
+require(magrittr)
+```
+
+## prior selection
+
+```{r}
+create_df <- function(post_draws, prior_draws){
+  post_draws <- data.frame(post_draws)
+  post_draws$distribution <- "posterior"
+  
+  prior_draws <- data.frame(prior_draws)
+  colnames(prior_draws) <- "alpha"
+  prior_draws$distribution <- "prior"
+  
+  dat <- rbind(post_draws, prior_draws)
+  return(dat)
+}
+set.seed(689934)
+
+alpha <- 1   
+beta <- -0.25 
+sigma <- 1    
+
+N <- 5
+x <- array(runif(N, 0, 2), dim=N)                    
+y <- array(rnorm(N, beta * x + alpha, sigma), dim=N)
+```
+
+## Flat priors:
+
+```{r}
+stan_dat <- list(y = y, x=x, N=N)
+fit.flat <- stan(file = "lab-04-flat_prior.stan", data = stan_dat, 
+                 chains = 1, refresh = 0, iter = 2000, warmup = 500, seed=48)
+## Trying to compile a simple C file
+alpha.flat <- as.matrix(fit.flat, pars = "alpha")
+beta.flat <- as.matrix(fit.flat, pars = "beta")
+ggplot(alpha.flat %>% as.data.frame, aes(x = alpha)) +
+  geom_histogram(bins = 30) +
+  labs(title = "Posterior distribution of alpha under the flat prior")
+```
+
+```{r}
+
+print(fit.flat, pars = c("alpha","beta"))
+```
+
+# Exercise 1:
+
+*Write down the posterior means of a and b. Give 95% credible intervals for each. Comment on how diffuse the posteriors of a and b are. Considering the amount of data and the type of prior we choose, do the results seem surprising? Explain.*
+
+both a and b are quite diffuse given the lack of data and the estimate viewed from stan above. Proof of a and b are quite difficult and will be completed later.
+
+From class:
+
+$$
+E(\alpha | Y) = (n\sum x_i^2 - (\sum x_i)^2)^{-1}(\sum x_i^2 \sum y_i - \sum x_i \sum x_i y_i)\\
+Var(\alpha | Y) = (n - \frac{(\sum x_i)^2}{\sum x_i})^{-1}
+$$
+
+## another flat prior UNIF(-10,10)
+
+```{r}
+stan_dat <- list(y = y, x=x, N=N, lb = -10, ub = 10)
+fit.unif <- stan(file = "lab-04-unif_prior.stan", data = stan_dat, 
+                 chains = 1, refresh = 0, iter = 2000, warmup = 500, seed=48)
+alpha.unif <- as.matrix(fit.unif, pars = c("alpha"))
+beta.unif <- as.matrix(fit.unif, pars = c("beta"))
+ggplot(alpha.unif %>% as.data.frame, aes(x = alpha)) +
+  geom_histogram(bins = 30) +
+  labs(title = "Posterior distribution of alpha under the Uniform(-10, 10) prior")
+```
+
+## posterior of the UNIF(-10,10) prior
+
+```{r}
+print(fit.unif, pars = c("alpha"))
+```
+
+## Consider N(0,1) prior
+
+```{r}
+stan_dat <- list(y = y, x=x, N=N)
+fit.norm <- stan(file = "lab-04-normal_prior.stan", data = stan_dat, 
+                 chains = 1, refresh = 0, iter = 2000, warmup = 500, seed=49)
+## Trying to compile a simple C file
+alpha.norm<- as.matrix(fit.norm, pars = c("alpha"))
+ggplot(alpha.norm %>% as.data.frame, aes(x = alpha)) +
+  geom_histogram(bins = 30) +
+  labs(title = "Posterior distribution of alpha under N(0,1) weakly informative prior")
+```
+
+```{r}
+print(fit.norm, pars = c("alpha","beta"))
+```
+
+# Exercise 2:
+
+Again proof is very difficult, but looking at the estimated alpha and beta from stan, this is less diffuse with a lower standard deviation but still not totally informative.
+
+## Heavy-tailed prior \~ cauchy(0,1)
+
+```{r}
+stan_dat <- list(y = y, x=x, N=N)
+fit.cauchy <- stan(file = "lab-04-cauchy_prior.stan",data = stan_dat, 
+                   chains = 1, refresh = 0, iter = 2000, warmup = 500, seed=55)
+## Trying to compile a simple C file
+alpha.cauchy<- as.matrix(fit.cauchy, pars = c("alpha"))
+ggplot(alpha.cauchy %>% as.data.frame, aes(x = alpha)) +
+  geom_histogram(bins = 30) +
+  labs(title = "Posterior distribution of alpha under Cauchy(0,1) weakly informative prior")
+```
+
+```{r}
+print(fit.cauchy, pars = c("alpha","beta"))
+
+plot_dat <- create_df(alpha.norm, alpha.cauchy) %>% 
+  mutate(distribution = if_else(distribution == "posterior", "Normal","Cauchy"))
+
+ggplot(plot_dat, aes(alpha, fill = distribution)) + 
+  geom_histogram(binwidth = 0.25, alpha = 0.7, position = "identity")+
+  geom_vline(xintercept = alpha) +
+  scale_fill_brewer()
+```
+
+# Exercise 3:
+
+*Would you say that a Cauchy prior is more or less informative than a Normal prior (assume that their inter-quartile ranges are comparable)? Compared to the Normal prior, how much probability mass does Cauchy prior put in the tail regions?*
+
+The cauchy puts much more mass in the tails so I think this is saying that there's a greater chance we could see extreme values for a and b. This seems less informative than the normal prior because it is less precise.
+
+## Sensitivity to prior selection:
+
+```{r}
+alpha <- 10
+N <- 10
+x <- runif(N, 0, 2)                    
+y <- rnorm(N, beta * x + alpha, sigma)
+
+stan_dat <- list(y = y, x=x, N=N)
+fit.norm <- stan(file = "lab-04-normal_prior.stan", data = stan_dat, 
+                 chains = 1, refresh = 0, iter = 2000, warmup = 500, seed=49)
+alpha.norm<- as.matrix(fit.norm, pars = c("alpha"))
+prior_draws <- rnorm(1000, 0, 1)
+plot_dat <- create_df(alpha.norm, prior_draws)
+
+ggplot(plot_dat, aes(alpha, fill = distribution)) + 
+  geom_histogram(binwidth = 0.25, alpha = 0.7, position = "identity")+
+  geom_vline(xintercept = alpha) +
+  scale_fill_brewer()
+```
+
+```{r}
+stan_dat <- list(y = y, x=x, N=N)
+fit.cauchy <- stan(file = "lab-04-cauchy_prior.stan",data = stan_dat, 
+                   chains = 1, refresh = 0, iter = 2000, warmup = 500, seed=55)
+alpha.cauchy<- as.matrix(fit.cauchy, pars = c("alpha"))
+prior_draws <- rcauchy(1000, 0, 1)
+prior_draws <- prior_draws[abs(prior_draws) < 25]
+plot_dat <- create_df(alpha.cauchy, prior_draws)
+
+ggplot(plot_dat, aes(alpha, fill = distribution)) + 
+  geom_histogram(binwidth = .5, alpha = 0.7, position = "identity")+
+  geom_vline(xintercept = alpha) +
+  scale_fill_brewer()
+
+```
+
+# Exercise 4:
+
+```{r}
+alpha <- 5
+beta <- -0.25 
+sigma <- 1    
+
+N <- 1000
+x <- array(runif(N, 0, 2), dim=N)                    
+y <- array(rnorm(N, beta * x + alpha, sigma), dim=N)
+
+
+stan_dat <- list(y = y, x=x, N=N)
+fit.norm <- stan(file = "lab-04-normal_prior.stan", data = stan_dat, 
+                 chains = 1, refresh = 0, iter = 2000, warmup = 500, seed=49)
+alpha.norm<- as.matrix(fit.norm, pars = c("alpha"))
+
+prior_draws <- rnorm(1000, 0, 1)
+plot_dat <- create_df(alpha.norm, prior_draws)
+
+stan_dat <- list(y = y, x=x, N=N)
+fit.cauchy <- stan(file = "lab-04-cauchy_prior.stan",data = stan_dat, 
+                   chains = 1, refresh = 0, iter = 2000, warmup = 500, seed=55)
+alpha.cauchy<- as.matrix(fit.cauchy, pars = c("alpha"))
+
+prior_draws <- rcauchy(1000, 0, 1)
+prior_draws <- prior_draws[abs(prior_draws) < 25]
+plot_dat <- create_df(alpha.cauchy, prior_draws)
+
+print(fit.cauchy, pars = c("alpha","beta"))
+
+plot_dat <- create_df(alpha.norm, alpha.cauchy) %>% 
+  mutate(distribution = if_else(distribution == "posterior", "Normal","Cauchy"))
+
+ggplot(plot_dat, aes(alpha, fill = distribution)) + 
+  geom_histogram(binwidth = 0.01, alpha = 0.7, position = "identity")+
+  geom_vline(xintercept = alpha) +
+  scale_fill_brewer(palette='Pastel2')
+```
+
+They perform fairly similarly with N=5 and alpha = 1. It looks like the normal is a little more precise. Comparing to the true alpha above, it looks like the cauchy is a little bit closer but still not great, and the normal performs poorly.
+
+I also tried increasing the N to 1000 (plotted above) and while they look similar I think the cauchy is performing better. So it looks like with a small sample size, the posterior is more affected by the prior while having a large sample size will let the sampling model dominate the posterior.
+
+# Exercise 5:
+
+If we thought for some reason that we could observe extreme values, we might want the heavier tails of the cauchy to potentially capture that info. If you don't have a lot of prior knowledge, you would choose the cauchy as well. However, if you had expert knowledge maybe the normal prior with a more precise estimate would be better.
+
+However, the large sample sizes will lead to a similar posterior.
+
+# Exercise 6:
+
+The scale of your prior would likely be based on either expert knowledge or the results from previous experiments or studies. For example, if you were measuring the weight of animals you would want your mean and variance to be similar to the past observed values to appropriately estimate the population.
+
+```{r}
+set.seed(123);
+theta <- 0.3;
+N <- 10;
+y <- rbinom(N, 1, theta)
+theta.mle <- sum(y)/N
+stan_dat <- list(y = y,N=N)
+fit.bayes.prob <- stan(file = "lab-04-prob.stan", data = stan_dat, refresh = 0, iter = 2000)
+## Trying to compile a simple C file
+print(fit.bayes.prob, pars = c("theta", "eta"))
+```
+
+# Exercise 7
+
+The posterior beta would be a beta(1,1) prior times the "true" sampling model of beta(3,7) so posterior is beta(4,8)
+
+$$
+\frac{\alpha-1}{\alpha + \beta -2}  = \frac{3}{4+8-2}= .30
+$$
+
+I am very unsure of how to calculate the mode based on the stan output above even with the lab instructions.
+
+# Exercise 8
+
+This is not a prior proper as the real line doesn't integrate to 1, so it's not a pdf. The bayesian procedure does still work, and it does result in a proper posterior I believe because of some normalizing constant. I'm not clear on which conditions, I would guess under the conditions that you can find a normalizing constant to find a closed-form posterior.
+
+# Exercise 9
+
+```{r}
+fit.logodds <- stan(file = "lab-04-log_odds.stan", data = stan_dat, refresh = 0, iter = 2000)
+## Trying to compile a simple C file
+print(fit.logodds, pars = c("theta", "eta"))
+```
+
+the induced prior is a uniform(0,1/2) and is a proper prior.

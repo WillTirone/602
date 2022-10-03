@@ -71,3 +71,121 @@ for (i in n0){
 
 plot(n0,prob,col='#42c5f5',pch=17)
 ```
+
+## c) 
+
+From p. 47/48 of Hoff we know that a poisson sampling model and gamma posterior will give a negative binomial predictive distribution with parameters $(\alpha + \sum y_i, \beta + n)$. So we have:
+
+$$
+\tilde{Y_A} \sim NBIN(237,20)\\
+\tilde{Y_B} \sim NBIN(125,14)
+$$
+
+repeating part a) and using the paramaterization from p. 49 (using mu, the posterior mean):
+
+```{r}
+
+
+predictA.sample = rnbinom(5000,size=237,mu=237/20)
+predictB.sample = rnbinom(5000,size=125,mu=125/14)
+
+mean(predictB.sample < predictA.sample)
+```
+
+repeating part b), since the predictive distribution has the same parameters as the posterior we found above, I'm just updating mu, the posterior mean, with each loop. This is more sensitive to changes in the prior since it looks like the probability drops from 0.65 to about 0.5 fairly quickly based on the prior.
+
+```{r}
+# calculating the updates 
+n0 = seq(1,75,1)
+predict.prob = c()
+
+for (i in n0){
+  predictB.sample = rnbinom(5000, s+(12*i),mu = (113 + (12*i)) / (i+n))
+  predict.prob = c(predict.prob,mean(predictB.sample < predictA.sample))
+}
+
+plot(n0,predict.prob,col='#f56042',pch=17)
+```
+
+# 4.4
+
+## a)
+
+Our posterior from 3.4 is plotted below.
+
+```{r}
+theta = seq(0,1,0.01)
+posterior = 18 * choose(43,15) * (3*theta^16 * (1-theta)^35 + theta^22 * (1-theta)^29)
+
+plot(theta,posterior,type='l')
+```
+
+#TODO: not integrating correctly somehow
+
+```{r}
+integrand = function(x) {18 * choose(43,15) * (3*x^16 * (1-x)^35 + x^22 * (1-x)^29)}
+
+integrate(integrand,lower=0,upper=1)
+```
+
+May need to find the posterior weights but I don't think so
+
+```{r}
+int = function(x) {.75 * dbeta(x,17,36) + .25 * dbeta(x,23,30)}
+plot(theta,int(theta))
+integrate(int,lower=0,upper=.4)
+```
+
+## b)
+
+```{r}
+w=.5
+x = rbinom(1,1,w)
+x
+```
+
+# 4.5
+
+## a)
+
+Let $Y = iid = Y_1,...Y_n$ and $X = iid = X_1,...,X_n$
+
+$$
+\begin{aligned}
+p(\theta | (Y,X)) & \propto P(Y,X|\theta)p(\theta)\\
+& \propto \prod_{i=1}^{n} \frac{e^{-\theta X} (\theta X)^Y}{Y!} \cdot dgamma(a,b)\\
+& \propto \frac{e^{-\theta\sum X_i} (\theta X)^\sum Y_i}{\prod Y_i!} \cdot \frac{b^a}{\Gamma(a)} \theta^{a-1}e^{-b\theta}\\
+& \propto c(X,Y,a,b) \theta^{\sum (Y_i + a )-1}e^{-\theta(\sum X_i + b)}
+\end{aligned}
+$$
+
+which is the kernel of a gamma, so our posterior is $gamma(\sum Y_i + a, \sum X_i + b)$ and we know there is poisson-gamma conjugacy as well.
+
+## b) 
+
+Per question, we will use the following priors:
+
+$$
+\theta_1 \sim gamma(a_1,b_1)\\
+\theta_2 \sim gamma(a_2,b_2)
+$$
+
+```{r}
+cancer_noreact = read.table('http://www2.stat.duke.edu/~pdh10/FCBS/Exercises/cancer_noreact.dat',header=TRUE)
+cancer_react = read.table('http://www2.stat.duke.edu/~pdh10/FCBS/Exercises/cancer_react.dat',header=TRUE)
+
+
+```
+
+# 4.6
+
+Following with the example from PH p. 58, the density of $\gamma$ below looks more informative than a uniform prior. This is peaked over 0 which indicates that we are more confident about $\gamma = 0$ than we are about other values, which is in contrast to a uniform belief.
+
+```{r}
+a=1
+b=1
+theta.prior.mc = rbeta(5000,1,1)
+gamma.prior.mc = log(theta.prior.mc / (1-theta.prior.mc))
+
+plot(density(gamma.prior.mc))
+```
