@@ -1,0 +1,26 @@
+---
+title: "STA 602 lab5"
+author: "William Tirone"
+format: pdf
+editor: visual
+---
+
+```{r}
+x <- runif(1000,-1,1)
+y <- runif(1000,-1,1)
+idx <- (x^2 + y^2 < 1)
+
+plot(x[idx], y[idx], xlab="x", ylab="y")
+curve((  1 * (1 - x^2)^0.5 ), add=TRUE, from=-1 , to =1)
+curve(( -1 * (1 - x^2)^0.5 ), add=TRUE, from=-1 , to =1)
+```
+
+# Exercise 1
+
+1.  No - the normal has much larger support than the exponential, including negative values, so the sample wouldn't be accurate. Support of exponential does not dominate normal.
+2.  You can sample here on -2,2 but you can't go past that since the cauchy tails are heavier than a normal density
+3.  yes
+
+# Exercise 2
+
+1.  M values are $\ge 2$
