@@ -1,0 +1,25 @@
+```{r}
+library(mvtnorm)
+library(coda)
+```
+
+### Exercise 1
+
+$$
+U_1 | U_2 \sim N(\mu_1 + \Sigma_{12}\Sigma^{-1}_{22}(U_2 - \mu_2),\Sigma_{11}-\Sigma_{12} \Sigma^{-1}_{22}\Sigma_{21})
+$$
+
+### Exercise 2
+
+```{r}
+mu = matrix(0,nrow=3,ncol=1)
+cov = matrix(c(1,.9,.1, .9,1,0.1, 0.1,0.1,1),3,3,byrow = TRUE)
+```
+
+### Exercise 3
+
+### Exercise 4
+
+### Exercise 5
+
+### Exercise 6

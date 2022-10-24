@@ -1,0 +1,58 @@
+---
+title: "STA 602 HW5"
+author: "William Tirone"
+format: pdf
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+library(kdensity)
+```
+
+# 6.2
+
+## a)
+
+The data is not symmetric, and has more mass in the right tail than a normal distribution would have.
+
+```{r}
+glucose = read.table('http://www2.stat.duke.edu/~pdh10/FCBS/Exercises/glucose.dat')
+ggplot() + geom_histogram(data=glucose, 
+                          aes(x=V1),
+                          binwidth = 2,
+                          col='purple',
+                          fill='navy')
+```
+
+I don't know anything about KDE, but it looks like this agrees with the histogram approach, more mass in the right tail.
+
+```{r}
+kde = kdensity(glucose$V1)
+plot(kde, main = "glucose data KDE")
+```
+
+## b)
+
+$$
+p([X_1,...,X_n],p,\theta_1,\theta_2,\sigma^2_1,\sigma^2_2) = p(data)\cdot p(p) \cdot p(\theta_1) \cdot p(\theta_2) \cdot p(\sigma^2_1) \cdot p(\sigma^2_2)
+$$
+
+For notational simplicity, let $\dots$ mean "all other variables".
+
+$$
+\begin{aligned}
+&p([X_1,…,X_n| \dots) = p^x(1-p)^{1-x} + 1\\
+&p(p | \dots)
+\end{aligned}
+$$
+
+# 6.3
+
+```{r echo=FALSE}
+divorce = read.table('http://www2.stat.duke.edu/~pdh10/FCBS/Exercises/divorce.dat')
+```
+
+## a)
+
+https://web.ics.purdue.edu/\~jltobias/BayesClass/lecture_notes/latent1_student.pdf

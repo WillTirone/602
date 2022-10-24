@@ -193,3 +193,112 @@ plot(c(1,2,4,8,16,32),probs,type='l')
 ```
 
 # 6.1
+
+## a)
+
+Since $\theta_B$ depends on $\theta_A$, they are dependent. This might be warranted if you were trying to find a posterior for something like fish deaths in a river with priors on air pollution and water temperature. Temperature could be affected by air pollution, since temperature depends on pollution levels, so it makes sense that you would have dependent priors.
+
+## b)
+
+Since $\theta$ and $\gamma$ are independent, we can split the joint density below:
+
+$$
+\begin{aligned}
+p(\theta,y_A,y_B,\gamma) \propto p(\theta)p(\gamma)p(y_A|\theta)p(y_B|\gamma\cdot\theta)
+\end{aligned}
+$$
+
+Now using the Poison sampling models and gamma priors, we end up with:
+
+$$
+\begin{aligned}
+p(\theta|y_A,y_B,\gamma) &\propto c\cdot\theta^{a_\theta-1+\sum y_{i_A} + \sum y_{i_B}} \cdot e^{-\theta(b_\theta + n_A + \gamma n_B)}\\
+& \propto gamma(a_\theta + \sum y_{i_A} + \sum y_{i_B}, b_\theta + n_A +\gamma n_B
+)\\
+\end{aligned}
+$$
+
+## c)
+
+Proceeding the same as part b):
+
+$$
+\begin{aligned}
+p(\gamma|y_A,y_B,\theta) & \propto c \cdot \gamma^{a_\gamma-1+\sum y_{i_B}}e^{-\gamma(b_\gamma + \theta n_B)}\\
+& \propto gamma(a_\gamma  + \sum y_{i_B}, b_\gamma + \theta \cdot n_B)
+\end{aligned}
+$$
+
+## d)
+
+```{r}
+# loading data 
+# referenced this: https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/scan
+
+bach = scan(url('http://www2.stat.duke.edu/~pdh10/FCBS/Exercises/menchild30bach.dat'))
+nobach =  scan(url('http://www2.stat.duke.edu/~pdh10/FCBS/Exercises/menchild30nobach.dat'))
+```
+
+Important: A represents with bachelors and B is without
+
+We have:
+
+$$
+\begin{aligned}
+p(\theta|everything) &= gamma(2 + 54 + 305, 1 + 58 +\gamma \cdot 218
+) = gamma(361,59 +\gamma \cdot218)\\
+p(\gamma | everything) &= gamma(a_\gamma  + 305, b_\gamma + \theta \cdot 218)\\
+\theta_A &= \theta \\
+\theta_B &= \theta \cdot \gamma
+\end{aligned}
+$$
+
+Goal:
+
+$$
+E[\theta_B - \theta_A | y_A,y_B]
+$$
+
+Code below was adapted from lecture 10 p.28 and PH p. 94
+
+```{r}
+
+# iterations for a_gamma and b_gamma 
+a.vals = c(8,16,32,64,128)
+S=5000
+
+# data 
+nA = length(bach)
+nB = length(nobach)
+yA.sum = sum(bach)
+yB.sum = sum(nobach)
+
+theta = matrix(NA,nrow=S,ncol=2,dimnames=list(1:S,c("theta","gamma")))
+theta.init = c(0,0) 
+theta.curr = theta.init
+
+for (i in a.vals) {
+  
+  for (j in 1:S) {
+    
+    t = theta.curr[1]
+    g = theta.curr[2]
+    
+    #update theta 
+    theta.curr[1] = rgamma(1,361,59 + g * 218)
+    
+    #update gamma 
+    theta.curr[2] = rgamma(1,i + 305, i + 218 * t)
+    
+    # saving current iteration 
+    theta[j,] = theta.curr 
+  }
+  
+  theta.A = theta[,1]
+  theta.B = theta[,1] * theta[,2]
+  
+  E = mean(theta.B - theta.A)
+  cat("E(thetaB - thetaA) for a_gamma = b_gamma = ", i, ":", E, "\n")
+}
+
+```
